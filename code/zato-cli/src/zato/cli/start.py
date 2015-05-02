@@ -15,7 +15,7 @@ import os, sys
 from bunch import Bunch
 
 # Sarge
-from sarge import run
+from sarge import run, Capture
 
 # Zato
 from zato.cli import ManageCommand
@@ -61,7 +61,9 @@ Examples:
         """
         program = '{} -m {} {} {}'.format(get_executable(), py_path, program_dir, ('' if self.args.fg else '2>&1 >/dev/null'))
         try:
-            run(program, async=False if self.args.fg else True)
+            p = run(program, async=False if self.args.fg else True, stderr=Capture())
+            if p.returncode != 0:
+                self.logger.error('Error while starting {} at {}: {}'.format(name, program_dir, p.stderr.text))
         except KeyboardInterrupt:
             if on_keyboard_interrupt:
                 on_keyboard_interrupt()
